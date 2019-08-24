@@ -1,62 +1,59 @@
 var p = document.getElementById('p');
-var socket = io('http://127.0.0.1:5000/');
+var socket = io('http://127.0.0.1:8080/');
 let textt = document.getElementById('tt');
 var reader = new FileReader();
-var recoder
-var blobEvent
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
-navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+MediaDevices.getUserMedia =  MediaDevices.getUserMedia || MediaDevices.webkitGetUserMedia || MediaDevices.mozGetUserMedia || navigator.msGetUserMedia
+
+
              
 var s = document.getElementById('s');
-var timer;
+var chunks = [];
+navigator.getUserMedia({audio: true, sampleRate:16000}, function(stream) {
+  context=new AudioContext({sampleRate: 16000})
+  mic=context.createMediaStreamSource(stream)
+  
+  scriptNode = context.createScriptProcessor(16384, 1, 1);
 
-navigator.getUserMedia({audio: true}, function(stream) {
+  mic.connect(scriptNode)
+  scriptNode.connect(context.destination)
+  console.log(context.sampleRate)
 
-recoder = new MediaRecorder(stream)
-recoder.start()
+    
 
-// blobEvent = new BlobEvent(recoder);
-// console.log(microphone.mediaStream)
-
-socket.on('stream', function(s){
+socket.on('result', function(s){
     console.log(s)
-});
+    tt.innerHTML=s['data']
+    });
 
-reader.onload = function(event){
-    console.log(reader.result);//内容就在这里
-    timer=reader.result
-    socket.emit('message', {'data':reader.result});
-  };
-recoder.ondataavailable = function(e) {
-    console.log(e.data)
-    reader.readAsArrayBuffer(e.data)
+scriptNode.onaudioprocess = function(audioProcessingEvent) {
+  // The input buffer is the song we loaded earlier
+  var inputBuffer = audioProcessingEvent.inputBuffer;
+    console.log(inputBuffer.getChannelData(0))
+  // The output buffer contains the samples that will be modified and played
+  var outputBuffer = audioProcessingEvent.outputBuffer;
+
+  // Loop through the output channels (in this case there is only one)
+  for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
+    var inputData = inputBuffer.getChannelData(channel);
+    var outputData = outputBuffer.getChannelData(channel);
+    outputData = inputData
+    socket.emit('message', {'data':inputData.buffer});
+
+    // Loop through the 4096 samples
+    // for (var sample = 0; sample < inputBuffer.length; sample++) {
+    //   // make output equal to the same as the input
+    //   outputData[sample] = inputData[sample];
+   
+    // }
+      
   }
+}
+
+
 p.onclick = function(){
-
-recoder.requestData()
+  tt.innerHTML='errorasds';
 };
-// var analyser = context.createAnalyser();
-// microphone.connect(analyser);
-// analyser.connect(context.destination);
-
-// analyser.fftSize = 32;
-// var bufferLength = analyser.frequencyBinCount;
-// var dataArray = new Uint8Array(analyser.fftSize);
-// //analyser.getByteFrequencyData(dataArray);
-
-// s.onclick = function(){
-//   clearTimeout(timer);
-// };
-
-
-// update();
-// tt.innerHTML='vvvv'
-// function update(){
-//   console.log(dataArray);
-//   tt.innerHTML=dataArray
-//   analyser.getByteFrequencyData(dataArray);
-//   timer = setTimeout(update,20);
-// }
 
 }, function(){
   tt.innerHTML='error';

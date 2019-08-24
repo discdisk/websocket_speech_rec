@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, send_from_directory
-from flask_socketio import SocketIO, send, emit
+# from flask_socketio import SocketIO, send, emit
 from time import sleep
-import python_speech_features
+# import python_speech_features
 count=0
 app = Flask(__name__)
 # app.config['SECRET_KEY'] = 'secret!'
@@ -20,6 +20,6 @@ def hello():
 
 
 if __name__ == '__main__':
-    app.run(debug=True,host='0.0.0.0',port=8080, ssl_context=('cert.pem', 'key.pem'))
+    app.run(debug=True,host='0.0.0.0',port=8082, ssl_context=('ssl_keys/cert.pem', 'ssl_keys/key.pem'))
     # print('asda')
     # socketio.run(app,debug=True,host='0.0.0.0',ssl_context='adhoc')
